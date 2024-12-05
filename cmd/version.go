@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
-	"okp4/template-go/internal/version"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
+	"okp4/template-go/internal/version"
 )
 
 const flagLong = "long"
@@ -16,7 +16,7 @@ const flagOutput = "output"
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the application binary version information",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		verInfo := version.NewInfo()
 
 		if long, _ := cmd.Flags().GetBool(flagLong); !long {
