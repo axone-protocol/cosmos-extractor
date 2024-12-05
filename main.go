@@ -1,6 +1,6 @@
 package main
 
-import "okp4/template-go/cmd"
+import "github.com/axone-protocol/wallet-extractor/cmd"
 
 func main() {
 	cmd.Execute()

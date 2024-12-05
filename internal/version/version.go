@@ -12,6 +12,8 @@ var (
 )
 
 // Info defines the application version information.
+//
+//nolint:tagliatelle // well, fields names are not that bad
 type Info struct {
 	Name      string `json:"name" yaml:"name"`
 	Version   string `json:"version" yaml:"version"`

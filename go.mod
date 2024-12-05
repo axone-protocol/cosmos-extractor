@@ -1,6 +1,6 @@
-module okp4/template-go
+module github.com/axone-protocol/wallet-extractor
 
-go 1.21
+go 1.23.3
 
 require (
 	github.com/smartystreets/goconvey v1.8.1

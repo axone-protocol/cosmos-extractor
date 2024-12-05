@@ -4,10 +4,12 @@ on:
   workflow_call:
 
   push:
-    branches: [ main ]
+    branches: [main]
 
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+  workflow_dispatch:
 
 concurrency:
   group: lint-${{ github.ref }}
@@ -24,7 +26,7 @@ jobs:
           fetch-depth: 0
 
       - name: Check commits
-        uses: wagoid/commitlint-github-action@v5
+        uses: wagoid/commitlint-github-action@v6
 
   lint-markdown:
     runs-on: ubuntu-22.04
@@ -53,10 +55,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Find changed go files
         id: changed-go-files
-        uses: tj-actions/changed-files@v41.0.0
+        uses: tj-actions/changed-files@v45.0.4
         with:
           files: |
             **/*.go
@@ -64,33 +68,80 @@ jobs:
             go.sum
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5.0.0
+        uses: actions/setup-go@v5.1.0
         if: steps.changed-go-files.outputs.any_changed == 'true'
         with:
-          go-version: "1.21"
+          go-version: "1.23"
+          cache: false
 
       - name: Lint go code (golangci-lint)
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         if: steps.changed-go-files.outputs.any_changed == 'true'
         with:
-          version: v1.55
+          version: v1.62
 
-  lint-dockerfile:
+      - name: Lint go code (gofumpt)
+        if: steps.changed-go-files.outputs.any_changed == 'true'
+        run: |
+          go install mvdan.cc/gofumpt@v0.6.0
+          if [ "$(gofumpt -l .)" != "" ]; then
+            echo "❌ Code is not gofumpt!"
+            exit 1
+          fi
+          echo "✅ Code is gofumpt!"
+
+  analyze-go:
     runs-on: ubuntu-22.04
-    if: github.actor != 'dependabot[bot]'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find changed go files
+        id: changed-go-files
+        uses: tj-actions/changed-files@v45.0.4
+        with:
+          files: |
+            **/*.go
+            go.mod
+            go.sum
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5.1.0
+        with:
+          go-version: "1.23"
+          cache: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: "go"
+
+      - name: Autobuild project
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  lint-shell:
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Lint dockerfile (hadolint)
-        uses: hadolint/hadolint-action@v3.1.0
-
-      - name: Lint dockerfile (docker-lint)
-        uses: luke142367/Docker-Lint-Action@v1.1.1
+      - name: Lint shell scripts
+        uses: ludeeus/action-shellcheck@2.0.0
         with:
-          target: Dockerfile
+          scandir: .
+          version: "v0.9.0"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHELLCHECK_OPTS: -e SC2034
 
   lint-branch-name:
     runs-on: ubuntu-22.04
@@ -125,7 +176,7 @@ jobs:
         if: ${{ failure() }}
         uses: codelytv/no-pull-requests@v1
         with:
-          GITHUB_TOKEN: ${{ secrets.OKP4_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OPS_TOKEN }}
           message: 🙅 Closing the PR because it does not respect naming conventions. Edit the branch name and submit a new PR.
     env:
-      GITHUB_TOKEN: ${{ secrets.OKP4_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.OPS_TOKEN }}

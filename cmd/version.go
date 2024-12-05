@@ -2,21 +2,23 @@ package cmd
 
 import (
 	"encoding/json"
-	"okp4/template-go/internal/version"
 	"strings"
 
+	"github.com/axone-protocol/wallet-extractor/internal/version"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
-const flagLong = "long"
-const flagOutput = "output"
+const (
+	flagLong   = "long"
+	flagOutput = "output"
+)
 
 // NewVersionCommand returns a CLI command to interactively print the application binary version information.
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the application binary version information",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		verInfo := version.NewInfo()
 
 		if long, _ := cmd.Flags().GetBool(flagLong); !long {

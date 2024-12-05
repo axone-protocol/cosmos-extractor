@@ -7,7 +7,7 @@ import (
 var helloWorld = &cobra.Command{
 	Use:   "say-hello",
 	Short: "Displays Hello World",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		cmd.Println(getWelcomeMessage())
 		return nil
 	},
