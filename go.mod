@@ -1,6 +1,6 @@
 module okp4/template-go
 
-go 1.23
+go 1.23.3
 
 require (
 	github.com/smartystreets/goconvey v1.8.1

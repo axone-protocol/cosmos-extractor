@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"strings"
 
+	"okp4/template-go/internal/version"
+
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"okp4/template-go/internal/version"
 )
 
 const flagLong = "long"
