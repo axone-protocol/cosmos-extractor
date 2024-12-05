@@ -55,6 +55,16 @@ linters:
     - whitespace
 
 linters-settings:
+  gci:
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - blank # blank imports
+      - dot # dot imports
+      - prefix(cosmossdk.io) # cosmossdk.io
+      - prefix(github.com/cosmos/cosmos-sdk) # cosmos-sdk & cosmos org libs
+      - prefix(github.com/axone-protocol/axoned) # axone
+    custom-order: true
   cyclop:
     max-complexity: 20
     skip-tests: true

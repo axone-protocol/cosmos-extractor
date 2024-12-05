@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"strings"
 
-	"okp4/template-go/internal/version"
-
+	"github.com/axone-protocol/wallet-extractor/internal/version"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
-const flagLong = "long"
-const flagOutput = "output"
+const (
+	flagLong   = "long"
+	flagOutput = "output"
+)
 
 // NewVersionCommand returns a CLI command to interactively print the application binary version information.
 var versionCmd = &cobra.Command{
