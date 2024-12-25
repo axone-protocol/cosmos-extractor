@@ -37,12 +37,17 @@ func Extract(chainName, src, dst string) error {
 
 	keepers.Logger.Info("Analyzing validators", "count", len(validators))
 
+	err = extractChainMetadata(ctx, chainName, keepers, dst)
+	if err != nil {
+		return err
+	}
 
 	return extractDelegators(ctx, chainName, keepers, validators, dst)
 }
 
 func extractDelegators(
-	ctx sdk.Context, chainName string, keepers *keeper.Keepers, validators []stakingtypes.Validator, destination string) error {
+	ctx sdk.Context, chainName string, keepers *keeper.Keepers, validators []stakingtypes.Validator, destination string,
+) error {
 	file, err := os.OpenFile(path.Join(destination, "delegations.csv"), os.O_RDWR|os.O_CREATE|os.O_APPEND, os.ModePerm)
 	if err != nil {
 		return err
@@ -102,6 +107,35 @@ func extractDelegators(
 	return nil
 }
 
+func extractChainMetadata(
+	_ sdk.Context, chainName string, keepers *keeper.Keepers, destination string,
+) error {
+	file, err := os.OpenFile(path.Join(destination, "metadatas.csv"), os.O_RDWR|os.O_CREATE|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
+
+	record := Chains{
+		Name:         chainName,
+		StoreVersion: fmt.Sprintf("%d", keepers.Store.LastCommitID().Version),
+		StoreHash:    fmt.Sprintf("%X", keepers.Store.LastCommitID().Hash),
+	}
+
+	v, err := gocsv.MarshalStringWithoutHeaders(&[]Chains{record})
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = writer.WriteString(v)
+	if err != nil {
+		panic(err)
+	}
+
+	return nil
+}
 
 func convertAndEncodeMust(hrp string, bech string) string {
 	_, bytes, err := bech32.DecodeAndConvert(bech)
