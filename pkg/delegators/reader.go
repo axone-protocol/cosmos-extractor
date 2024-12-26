@@ -3,7 +3,6 @@ package delegators
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/axone-protocol/wallet-extractor/pkg/keeper"
@@ -26,9 +25,7 @@ type delegatorsReader struct {
 }
 
 // NewDelegatorsReader returns a new Reader that reads delegators from a blockchain data stores.
-func NewDelegatorsReader(chainName, src string) (goetl.Processor, error) {
-	logger := log.NewLogger(os.Stderr)
-
+func NewDelegatorsReader(chainName, src string, logger log.Logger) (goetl.Processor, error) {
 	return &delegatorsReader{
 		chainName: chainName,
 		src:       src,
@@ -131,9 +128,7 @@ type chainReader struct {
 }
 
 // NewChainReader returns a new Reader that reads metadata information about a blockchain data store.
-func NewChainReader(chainName, src string) (goetl.Processor, error) {
-	logger := log.NewLogger(os.Stderr)
-
+func NewChainReader(chainName, src string, logger log.Logger) (goetl.Processor, error) {
 	return &chainReader{
 		chainName: chainName,
 		src:       src,

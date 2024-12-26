@@ -15,7 +15,7 @@ var extractDelegatorsCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		chainName, _ := cmd.Flags().GetString(flagChainName)
-		pipeline, err := delegators.Pipeline(chainName, args[0], args[1])
+		pipeline, err := delegators.Pipeline(chainName, args[0], args[1], logger)
 		if err != nil {
 			return err
 		}

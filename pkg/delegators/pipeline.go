@@ -4,6 +4,8 @@ import (
 	"path"
 
 	"github.com/teambenny/goetl"
+
+	"cosmossdk.io/log"
 )
 
 const (
@@ -15,8 +17,8 @@ type pipelines struct {
 	pipelines []goetl.PipelineIface
 }
 
-func Pipeline(chainName, src, dst string) (goetl.PipelineIface, error) {
-	readDelegators, err := NewDelegatorsReader(chainName, src)
+func Pipeline(chainName, src, dst string, logger log.Logger) (goetl.PipelineIface, error) {
+	readDelegators, err := NewDelegatorsReader(chainName, src, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +27,7 @@ func Pipeline(chainName, src, dst string) (goetl.PipelineIface, error) {
 		return nil, err
 	}
 
-	readChain, err := NewChainReader(chainName, src)
+	readChain, err := NewChainReader(chainName, src, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -36,8 +38,16 @@ func Pipeline(chainName, src, dst string) (goetl.PipelineIface, error) {
 
 	return &pipelines{
 		pipelines: []goetl.PipelineIface{
-			goetl.NewPipeline(readChain, writeChain),
-			goetl.NewPipeline(readDelegators, writeDelegators),
+			func() goetl.PipelineIface {
+				pipeline := goetl.NewPipeline(readChain, writeChain)
+				pipeline.Name = "Chain"
+				return pipeline
+			}(),
+			func() goetl.PipelineIface {
+				pipeline := goetl.NewPipeline(readDelegators, writeDelegators)
+				pipeline.Name = "Delegators"
+				return pipeline
+			}(),
 		},
 	}, nil
 }
