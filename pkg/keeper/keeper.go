@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"io"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
@@ -32,6 +33,7 @@ type Keepers struct {
 	dbPath string
 	codec  *codec.ProtoCodec
 	keys   map[string]*storetypes.KVStoreKey
+	closer io.Closer
 
 	Logger log.Logger
 	Store  storetypes.CommitMultiStore
@@ -58,7 +60,7 @@ func OpenStore(dbPath string, logger log.Logger) (*Keepers, error) {
 	bankKeeper := newBankKeeper(codec, keys, authKeeper, logger)
 	stakingKeeper := newStakingKeeper(codec, keys, authKeeper, bankKeeper)
 
-	store, err := newCommitMultiStore(dbPath, keys, logger)
+	closer, store, err := newCommitMultiStore(dbPath, keys, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -67,12 +69,25 @@ func OpenStore(dbPath string, logger log.Logger) (*Keepers, error) {
 		dbPath:  dbPath,
 		codec:   codec,
 		keys:    keys,
+		closer:  closer,
 		Logger:  logger,
 		Store:   store,
 		Account: authKeeper,
 		Bank:    bankKeeper,
 		Staking: stakingKeeper,
 	}, nil
+}
+
+func (k *Keepers) Close() error {
+	k.Logger.Debug("Closing store", "path", k.dbPath)
+
+	if err := k.closer.Close(); err != nil {
+		return err
+	}
+
+	k.Logger.Debug("Store closed", "path", k.dbPath)
+
+	return nil
 }
 
 var modulePermissions = map[string][]string{
@@ -146,12 +161,12 @@ func newStakingKeeper(
 
 func newCommitMultiStore(
 	dbPath string, keys map[string]*storetypes.KVStoreKey, logger log.Logger,
-) (storetypes.CommitMultiStore, error) {
+) (io.Closer, storetypes.CommitMultiStore, error) {
 	logger.Debug("Opening store", "path", dbPath)
 
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, dbPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ms := store.NewCommitMultiStore(db, logger, metrics.NewNoOpMetrics())
@@ -160,12 +175,12 @@ func newCommitMultiStore(
 	}
 
 	if err := ms.LoadLatestVersion(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	commitID := ms.LastCommitID()
 
 	logger.Debug("Store loaded", "version", commitID.Version, "hash", fmt.Sprintf("%x", commitID.Hash))
 
-	return ms, nil
+	return db, ms, nil
 }
