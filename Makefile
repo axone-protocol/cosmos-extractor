@@ -1,7 +1,7 @@
 # ℹ Freely based on: https://gist.github.com/thomaspoignant/5b72d579bd5f311904d973652180c705
 
 # Constants
-BINARY_NAME             = template-go
+BINARY_NAME             = $(shell basename `pwd`)
 TARGET_FOLDER           = target
 DIST_FOLDER             = $(TARGET_FOLDER)/dist
 DOCKER_IMAGE_GOLANG_CI  = golangci/golangci-lint:v1.62
@@ -17,13 +17,13 @@ COLOR_RESET  = $(shell tput -Txterm sgr0)
 VERSION  := $(shell cat version)
 COMMIT   := $(shell git log -1 --format='%H')
 LD_FLAGS  = \
-	-X okp4/template-go/internal/version.Name=$(BINARY_NAME) \
-	-X okp4/template-go/internal/version.Version=$(VERSION)  \
-	-X okp4/template-go/internal/version.Commit=$(COMMIT)
+	-X github.com/axone-protocol/wallet-extractor/internal/version.Name=$(BINARY_NAME) \
+	-X github.com/axone-protocol/wallet-extractor/internal/version.Version=$(VERSION)  \
+	-X github.com/axone-protocol/wallet-extractor/internal/version.Commit=$(COMMIT)
 BUILD_FLAGS := -ldflags '$(LD_FLAGS)'
 
 # Commands
-GO_BUiLD := CGO_ENABLED=0 go build $(BUILD_FLAGS)
+GO_BUILD := CGO_ENABLED=0 go build $(BUILD_FLAGS)
 
 # Environments
 ENVIRONMENTS = \
@@ -103,5 +103,5 @@ help: ## Show this help.
 # $2: architecture (GOARCH)
 # $3: filename of the executable generated
 define build-go
-	GOOS=$1 GOARCH=$2 $(GO_BUiLD) -o $3 ${CMD_ROOT}
+	GOOS=$1 GOARCH=$2 $(GO_BUILD) -o $3 ${CMD_ROOT}
 endef

@@ -8,7 +8,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
-	Use:   "template-go",
+	Use:   "wallet-extractor",
 	Short: "A template fo Golang projects",
 	Long:  "A template fo Golang projects",
 }

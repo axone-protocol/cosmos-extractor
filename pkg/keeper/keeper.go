@@ -1,4 +1,4 @@
-package pkg
+package keeper
 
 import (
 	"fmt"
@@ -42,15 +42,7 @@ type Keepers struct {
 }
 
 // OpenStore opens an existing store at the given path and returns the keepers for the store.
-func OpenStore(dbPath, addressPrefix string) (*Keepers, error) {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForValidator(
-		fmt.Sprintf("%svaloper", addressPrefix),
-		fmt.Sprintf("%svaloperpub", addressPrefix),
-	)
-	config.Seal()
-
-	logger := log.NewNopLogger()
+func OpenStore(dbPath string, logger log.Logger) (*Keepers, error) {
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey,
 		banktypes.StoreKey,
@@ -105,6 +97,7 @@ func newCodec() (*codec.ProtoCodec, error) {
 		return nil, err
 	}
 	std.RegisterInterfaces(interfaceRegistry)
+	interfaceRegistry.RegisterInterface("/cosmos.auth.v1beta1.BaseAccount", (*sdk.AccountI)(nil))
 
 	return codec.NewProtoCodec(interfaceRegistry), nil
 }
@@ -154,6 +147,8 @@ func newStakingKeeper(
 func newCommitMultiStore(
 	dbPath string, keys map[string]*storetypes.KVStoreKey, logger log.Logger,
 ) (storetypes.CommitMultiStore, error) {
+	logger.Debug("Opening store", "path", dbPath)
+
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, dbPath)
 	if err != nil {
 		return nil, err
@@ -169,7 +164,8 @@ func newCommitMultiStore(
 	}
 
 	commitID := ms.LastCommitID()
-	logger.Info("Loaded store at version: %d, hash: %X\n", commitID.Version, commitID.Hash)
+
+	logger.Debug("Store loaded", "version", commitID.Version, "hash", fmt.Sprintf("%x", commitID.Hash))
 
 	return ms, nil
 }
