@@ -25,18 +25,18 @@ plugins:
         make build-go-all
   - - "@semantic-release/github"
     - assets:
-        - name: wallet-extractor_darwin_amd64
+        - name: cosmos-extractor_darwin_amd64
           label: Binary - Darwin amd64
-          path: "./target/dist/darwin/amd64/wallet-extractor"
-        - name: wallet-extractor_darwin_arm64
+          path: "./target/dist/darwin/amd64/cosmos-extractor"
+        - name: cosmos-extractor_darwin_arm64
           label: Binary - Darwin arm64
-          path: "./target/dist/darwin/arm64/wallet-extractor"
-        - name: wallet-extractor_linux_amd64
+          path: "./target/dist/darwin/arm64/cosmos-extractor"
+        - name: cosmos-extractor_linux_amd64
           label: Binary - Linux amd64
-          path: "./target/dist/linux/amd64/wallet-extractor"
-        - name: wallet-extractor_windows_amd64.exe
+          path: "./target/dist/linux/amd64/cosmos-extractor"
+        - name: cosmos-extractor_windows_amd64.exe
           label: Binary - Windows amd64
-          path: "./target/dist/windows/amd64/wallet-extractor.exe"
+          path: "./target/dist/windows/amd64/cosmos-extractor.exe"
   - - "@semantic-release/git"
     - assets:
         - CHANGELOG.md

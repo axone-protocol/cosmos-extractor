@@ -17,9 +17,9 @@ COLOR_RESET  = $(shell tput -Txterm sgr0)
 VERSION  := $(shell cat version)
 COMMIT   := $(shell git log -1 --format='%H')
 LD_FLAGS  = \
-	-X github.com/axone-protocol/wallet-extractor/internal/version.Name=$(BINARY_NAME) \
-	-X github.com/axone-protocol/wallet-extractor/internal/version.Version=$(VERSION)  \
-	-X github.com/axone-protocol/wallet-extractor/internal/version.Commit=$(COMMIT)
+	-X github.com/axone-protocol/cosmos-extractor/internal/version.Name=$(BINARY_NAME) \
+	-X github.com/axone-protocol/cosmos-extractor/internal/version.Version=$(VERSION)  \
+	-X github.com/axone-protocol/cosmos-extractor/internal/version.Commit=$(COMMIT)
 BUILD_FLAGS := -ldflags '$(LD_FLAGS)'
 
 # Commands

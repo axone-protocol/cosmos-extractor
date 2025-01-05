@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	pkglogger "github.com/axone-protocol/wallet-extractor/pkg/logger"
+	pkglogger "github.com/axone-protocol/cosmos-extractor/pkg/logger"
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/log"
@@ -17,7 +17,7 @@ const (
 
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
-	Use:   "wallet-extractor",
+	Use:   "cosmos-extractor",
 	Short: "A template fo Golang projects",
 	Long:  "A template fo Golang projects",
 	PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {

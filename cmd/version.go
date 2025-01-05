@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/axone-protocol/wallet-extractor/internal/version"
+	"github.com/axone-protocol/cosmos-extractor/internal/version"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
