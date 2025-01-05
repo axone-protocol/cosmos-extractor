@@ -1,4 +1,4 @@
-module github.com/axone-protocol/wallet-extractor
+module github.com/axone-protocol/cosmos-extractor
 
 go 1.23.3
 

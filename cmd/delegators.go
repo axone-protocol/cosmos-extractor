@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/axone-protocol/wallet-extractor/pkg/delegators"
+	"github.com/axone-protocol/cosmos-extractor/pkg/delegators"
 	"github.com/spf13/cobra"
 )
 

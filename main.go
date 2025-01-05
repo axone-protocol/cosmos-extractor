@@ -1,6 +1,6 @@
 package main
 
-import "github.com/axone-protocol/wallet-extractor/cmd"
+import "github.com/axone-protocol/cosmos-extractor/cmd"
 
 func main() {
 	cmd.Execute()

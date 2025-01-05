@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/axone-protocol/wallet-extractor/pkg/keeper"
+	"github.com/axone-protocol/cosmos-extractor/pkg/keeper"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/teambenny/goetl"
 	"github.com/teambenny/goetl/etldata"
