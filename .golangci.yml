@@ -70,6 +70,7 @@ linters-settings:
     skip-tests: true
   funlen:
     statements: 65
+    lines: 70
   godot:
     scope: declarations # comments to be checked: `declarations` (default), `toplevel`, or `all`
   lll:
