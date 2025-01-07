@@ -20,7 +20,8 @@ Initially developed for Axone’s internal needs, it provides a versatile founda
 
 ## Features
 
-- Export delegators and their delegations to a CSV file.
+- Export chain store information.
+- Export delegators and their delegations.
 
 ## Usage example
 
