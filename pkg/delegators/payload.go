@@ -1,11 +1,5 @@
 package delegators
 
-type Chain struct {
-	Name         string `json:"name"`
-	StoreVersion string `json:"store_version"`
-	StoreHash    string `json:"store_hash"`
-}
-
 type Delegation struct {
 	ChainName           string `json:"chain_name"`
 	DelegatorNativeAddr string `json:"delegator_native_addr"`

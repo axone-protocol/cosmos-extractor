@@ -120,61 +120,6 @@ func (r *delegatorsReader) String() string {
 	return "DelegatorsReader"
 }
 
-type chainReader struct {
-	chainName string
-	src       string
-	logger    log.Logger
-	closer    io.Closer
-}
-
-// NewChainReader returns a new Reader that reads metadata information about a blockchain data store.
-func NewChainReader(chainName, src string, logger log.Logger) (goetl.Processor, error) {
-	return &chainReader{
-		chainName: chainName,
-		src:       src,
-		logger:    logger,
-	}, nil
-}
-
-func (r *chainReader) ProcessData(_ etldata.Payload, outputChan chan etldata.Payload, killChan chan error) {
-	keepers, err := keeper.OpenStore(r.src, r.logger)
-	if err != nil {
-		r.logger.Error(err.Error())
-		killChan <- err
-		return
-	}
-	r.closer = keepers
-
-	payload := Chain{
-		Name:         r.chainName,
-		StoreVersion: fmt.Sprintf("%d", keepers.Store.LastCommitID().Version),
-		StoreHash:    fmt.Sprintf("%X", keepers.Store.LastCommitID().Hash),
-	}
-
-	json, err := etldata.NewJSON(payload)
-	if err != nil {
-		r.logger.Error(err.Error())
-		killChan <- err
-		return
-	}
-
-	outputChan <- json
-}
-
-func (r *chainReader) Finish(_ chan etldata.Payload, killChan chan error) {
-	if r.closer != nil {
-		err := r.closer.Close()
-		if err != nil {
-			r.logger.Error(err.Error())
-			killChan <- err
-		}
-	}
-}
-
-func (r *chainReader) String() string {
-	return "ChainReader"
-}
-
 func convertAndEncodeMust(hrp string, bech string) string {
 	_, bytes, err := bech32.DecodeAndConvert(bech)
 	if err != nil {
