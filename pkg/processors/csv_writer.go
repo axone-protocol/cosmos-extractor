@@ -1,4 +1,4 @@
-package delegators
+package processors
 
 import (
 	"bufio"

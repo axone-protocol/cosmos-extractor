@@ -1,4 +1,4 @@
-package delegators
+package infos
 
 import (
 	"path"
@@ -10,20 +10,20 @@ import (
 )
 
 const (
-	DelegatorsCSVFilename = "delegators.csv"
+	InfosCSVFilename = "infos.csv"
 )
 
 func Pipeline(chainName, src, dst string, logger log.Logger) (goetl.PipelineIface, error) {
-	read, err := NewDelegatorsReader(chainName, src, logger)
+	read, err := NewInfoReader(chainName, src, logger)
 	if err != nil {
 		return nil, err
 	}
-	write, err := processors.NewCSVWriter(path.Join(dst, DelegatorsCSVFilename))
+	write, err := processors.NewCSVWriter(path.Join(dst, InfosCSVFilename))
 	if err != nil {
 		return nil, err
 	}
 
 	pipeline := goetl.NewPipeline(read, write)
-	pipeline.Name = "Delegators"
+	pipeline.Name = "Chain"
 	return pipeline, nil
 }

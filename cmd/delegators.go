@@ -5,13 +5,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	flagChainName = "chain-name"
-)
-
 var extractDelegatorsCmd = &cobra.Command{
 	Use:   "delegators [source] [dest]",
-	Short: "Extract all delegators into CSV files",
+	Short: "Extract all delegators into a CSV file",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		chainName, _ := cmd.Flags().GetString(flagChainName)
@@ -28,6 +24,4 @@ var extractDelegatorsCmd = &cobra.Command{
 
 func init() {
 	extractCmd.AddCommand(extractDelegatorsCmd)
-
-	extractDelegatorsCmd.Flags().StringP(flagChainName, "n", "cosmos", "Name of the chain")
 }
