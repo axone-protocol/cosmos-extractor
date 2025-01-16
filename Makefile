@@ -52,7 +52,7 @@ lint-go: ## Lint go source code
 build: build-go ## Build all available artefacts (executable, docker image, etc.)
 
 build-go: ## Build executable for the current environment (default build)
-	@echo "${COLOR_CYAN} 🏗️ Building project ${COLOR_RESET}${CMD_ROOT}${COLOR_CYAN}${COLOR_RESET} into ${COLOR_YELLOW}${DIST_FOLDER}${COLOR_RESET}"
+	@echo "${COLOR_CYAN} 🏗️ Building project${COLOR_RESET}${CMD_ROOT}${COLOR_CYAN}${COLOR_RESET} into ${COLOR_YELLOW}${DIST_FOLDER}${COLOR_RESET}"
 	@$(call build-go,"","",${DIST_FOLDER}/${BINARY_NAME})
 
 build-go-all: $(ENVIRONMENTS_TARGETS) ## Build executables for all available environments
@@ -65,13 +65,13 @@ $(ENVIRONMENTS_TARGETS):
       EXTENSION=".exe"; \
     fi; \
     FILENAME=$$FOLDER/${BINARY_NAME}$$EXTENSION; \
-	echo "${COLOR_CYAN} 🏗️ Building project ${COLOR_RESET}${CMD_ROOT}${COLOR_CYAN} for environment ${COLOR_YELLOW}$$GOOS ($$GOARCH)${COLOR_RESET} into ${COLOR_YELLOW}$$FOLDER${COLOR_RESET}" && \
+	echo "${COLOR_CYAN} 🏗️ Building project${COLOR_RESET}${CMD_ROOT}${COLOR_CYAN} for environment ${COLOR_YELLOW}$$GOOS ($$GOARCH)${COLOR_RESET} into ${COLOR_YELLOW}$$FOLDER${COLOR_RESET}" && \
 	$(call build-go,$$GOOS,$$GOARCH,$$FILENAME)
 
 
 ## Install:
 install: ## Install executable
-	@echo "${COLOR_CYAN} 🚚 Installing project ${BINARY_NAME}${COLOR_RESET}"
+	@echo "${COLOR_CYAN} 🚚 Installing project${BINARY_NAME}${COLOR_RESET}"
 	@go install $(BUILD_FLAGS) ${CMD_ROOT}
 
 ## Test:
