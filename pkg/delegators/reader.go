@@ -60,15 +60,15 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 		return
 	}
 
-	config := sdk.GetConfig()
-	if config.GetBech32AccountAddrPrefix() != prefix {
-		config.SetBech32PrefixForValidator(
-			fmt.Sprintf("%svaloper", prefix),
-			fmt.Sprintf("%svaloperpub", prefix),
-		)
-	}
+	configureSdk(prefix)
 
+	lastSeenAddr := ""
 	keepers.Bank.IterateAllBalances(ctx, func(addr sdk.AccAddress, _ sdk.Coin) (stop bool) {
+		if addr.String() == lastSeenAddr {
+			return false
+		}
+		lastSeenAddr = addr.String()
+
 		for _, val := range validators {
 			valAddr, err := sdk.ValAddressFromBech32(val.OperatorAddress)
 			etlutil.KillPipelineIfErr(err, killChan)
@@ -140,4 +140,14 @@ func guessPrefixFromValoper(valoper string) (string, error) {
 		return valoper[:idx], nil
 	}
 	return "", fmt.Errorf("valoper not found in operator address: %s", valoper)
+}
+
+func configureSdk(prefix string) {
+	config := sdk.GetConfig()
+	if config.GetBech32AccountAddrPrefix() != prefix {
+		config.SetBech32PrefixForValidator(
+			fmt.Sprintf("%svaloper", prefix),
+			fmt.Sprintf("%svaloperpub", prefix),
+		)
+	}
 }
