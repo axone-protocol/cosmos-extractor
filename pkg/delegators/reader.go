@@ -1,6 +1,7 @@
 package delegators
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -15,6 +16,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 type delegatorsReader struct {
@@ -68,19 +70,18 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 
 	keepers.Bank.IterateAllBalances(ctx, func(addr sdk.AccAddress, _ sdk.Coin) (stop bool) {
 		for _, val := range validators {
-			if config.GetBech32AccountAddrPrefix() != prefix {
-				config.SetBech32PrefixForValidator(
-					fmt.Sprintf("%svaloper", prefix),
-					fmt.Sprintf("%svaloperpub", prefix),
-				)
-			}
-
 			valAddr, err := sdk.ValAddressFromBech32(val.OperatorAddress)
 			etlutil.KillPipelineIfErr(err, killChan)
 
 			delegation, err := keepers.Staking.GetDelegation(ctx, addr, valAddr)
 			if err != nil {
-				continue
+				if errors.Is(err, stakingtypes.ErrNoDelegation) {
+					continue
+				}
+
+				r.logger.Error(err.Error())
+				killChan <- err
+				return true
 			}
 
 			payload := Delegation{

@@ -11,7 +11,7 @@ import (
 
 const (
 	flagLong   = "long"
-	flagOutput = "output"
+	flagFormat = "format"
 )
 
 // NewVersionCommand returns a CLI command to interactively print the application binary version information.
@@ -31,8 +31,8 @@ var versionCmd = &cobra.Command{
 			err error
 		)
 
-		output, _ := cmd.Flags().GetString(flagOutput)
-		switch strings.ToLower(output) {
+		format, _ := cmd.Flags().GetString(flagFormat)
+		switch strings.ToLower(format) {
 		case "json":
 			bz, err = json.Marshal(verInfo)
 
@@ -53,5 +53,5 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 
 	versionCmd.Flags().Bool(flagLong, false, "Print long version information")
-	versionCmd.Flags().StringP(flagOutput, "o", "text", "Output format (text|json)")
+	versionCmd.Flags().StringP(flagFormat, "f", "text", "Output format (text|json)")
 }
