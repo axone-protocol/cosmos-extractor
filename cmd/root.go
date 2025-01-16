@@ -18,8 +18,7 @@ const (
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "cosmos-extractor",
-	Short: "A template fo Golang projects",
-	Long:  "A template fo Golang projects",
+	Short: "Tool for extracting diverse data from Cosmos chain snapshots",
 	PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 		logLevel := cmd.Flag(flagLogLevel).Value.String()
 		filterFn, err := log.ParseLogLevel(logLevel)
