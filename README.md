@@ -27,5 +27,5 @@ Initially developed for Axone’s internal needs, it provides a versatile founda
 
 ```bash
 # Export delegators and their delegations to a CSV file
-$ cosmos-extractor extract delegators ./data/bitsong/data ./output --chain-name bitsong
+$ cosmos-extractor extract delegators ./data/bitsong/data --chain-name bitsong --output ./extracts/bitsong-delegators.csv
 ```
