@@ -1,6 +1,7 @@
 package delegators
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -12,10 +13,13 @@ import (
 	"github.com/teambenny/goetl/etldata"
 	"github.com/teambenny/goetl/etlutil"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -62,13 +66,7 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 
 	configureSdk(prefix)
 
-	lastSeenAddr := ""
-	keepers.Bank.IterateAllBalances(ctx, func(addr sdk.AccAddress, _ sdk.Coin) (stop bool) {
-		if addr.String() == lastSeenAddr {
-			return false
-		}
-		lastSeenAddr = addr.String()
-
+	err = IterateAllAddresses(ctx, keepers.Bank, func(addr sdk.AccAddress) (stop bool) {
 		for _, val := range validators {
 			valAddr, err := sdk.ValAddressFromBech32(val.OperatorAddress)
 			etlutil.KillPipelineIfErr(err, killChan)
@@ -105,6 +103,10 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 
 		return false
 	})
+	if err != nil {
+		r.logger.Error(err.Error())
+		killChan <- err
+	}
 }
 
 func (r *delegatorsReader) Finish(_ chan etldata.Payload, killChan chan error) {
@@ -119,6 +121,23 @@ func (r *delegatorsReader) Finish(_ chan etldata.Payload, killChan chan error) {
 
 func (r *delegatorsReader) String() string {
 	return "DelegatorsReader"
+}
+
+// IterateAllAddresses iterates over all the accounts that are provided to a callback.
+// If true is returned from the callback, iteration is halted.
+func IterateAllAddresses(ctx context.Context, bankKeeper bankkeeper.BaseKeeper, cb func(sdk.AccAddress) bool) error {
+	lastSeenAddr := ""
+	err := bankKeeper.Balances.Walk(ctx, nil, func(key collections.Pair[sdk.AccAddress, string], _ math.Int) (stop bool, err error) {
+		addr := key.K1()
+		if addr.String() == lastSeenAddr {
+			return false, nil
+		}
+		lastSeenAddr = addr.String()
+
+		return cb(addr), nil
+	})
+
+	return err
 }
 
 func convertAndEncodeMust(hrp string, bech string) string {
