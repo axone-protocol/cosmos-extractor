@@ -42,5 +42,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().String(flagLogLevel, "info", "logging level (trace|debug|info|warn|error|fatal|panic)")
+	rootCmd.PersistentFlags().String(flagLogLevel, "warn", "logging level (trace|debug|info|warn|error|fatal|panic)")
 }
