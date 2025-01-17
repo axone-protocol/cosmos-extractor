@@ -146,6 +146,7 @@ require (
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/samber/lo v1.47.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
