@@ -18,7 +18,6 @@ import (
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -85,8 +84,6 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 			payload := Delegation{
 				ChainName:           r.chainName,
 				DelegatorNativeAddr: delegation.DelegatorAddress,
-				DelegatorCosmosAddr: convertAndEncodeMust("cosmos", delegation.DelegatorAddress),
-				DelegatorAxoneAddr:  convertAndEncodeMust("axone", delegation.DelegatorAddress),
 				ValidatorAddr:       delegation.ValidatorAddress,
 				Shares:              delegation.Shares.String(),
 			}
@@ -138,20 +135,6 @@ func IterateAllAddresses(ctx context.Context, bankKeeper bankkeeper.BaseKeeper, 
 	})
 
 	return err
-}
-
-func convertAndEncodeMust(hrp string, bech string) string {
-	_, bytes, err := bech32.DecodeAndConvert(bech)
-	if err != nil {
-		panic(err)
-	}
-
-	encoded, err := bech32.ConvertAndEncode(hrp, bytes)
-	if err != nil {
-		panic(err)
-	}
-
-	return encoded
 }
 
 func guessPrefixFromValoper(valoper string) (string, error) {
