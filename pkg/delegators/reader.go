@@ -23,20 +23,60 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
+type ReaderOption func(*delegatorsReader) error
+
+func WithChainName(chainName string) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.chainName = chainName
+		return nil
+	}
+}
+
+func WithLogger(logger log.Logger) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.logger = logger
+		return nil
+	}
+}
+
+func WithMinSharesFilter(minShares math.LegacyDec) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.minSharesFilter = minShares
+		return nil
+	}
+}
+
+func WithMaxSharesFilter(maxShares math.LegacyDec) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.maxSharesFilter = maxShares
+		return nil
+	}
+}
+
 type delegatorsReader struct {
-	chainName string
-	src       string
-	logger    log.Logger
-	closer    io.Closer
+	chainName       string
+	src             string
+	logger          log.Logger
+	closer          io.Closer
+	minSharesFilter math.LegacyDec
+	maxSharesFilter math.LegacyDec
 }
 
 // NewDelegatorsReader returns a new Reader that reads delegators from a blockchain data stores.
-func NewDelegatorsReader(chainName, src string, logger log.Logger) (goetl.Processor, error) {
-	return &delegatorsReader{
-		chainName: chainName,
+func NewDelegatorsReader(src string, options ...ReaderOption) (goetl.Processor, error) {
+	r := &delegatorsReader{
+		chainName: "mystery",
 		src:       src,
-		logger:    logger,
-	}, nil
+		logger:    log.NewNopLogger(),
+	}
+
+	for _, option := range options {
+		if err := option(r); err != nil {
+			return nil, err
+		}
+	}
+
+	return r, nil
 }
 
 func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldata.Payload, killChan chan error) {
@@ -68,7 +108,13 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 
 	err = iterateAllAddresses(ctx, keepers.Bank, func(addr sdk.AccAddress) (stop bool) {
 		delegations := lo.RejectMap(validators,
-			toDelegations(ctx, addr, r.logger, keepers.Staking, killChan))
+			extractDelegations(ctx, addr, r.logger, keepers.Staking, killChan))
+		shares := lo.Reduce(delegations, computeShares(), math.LegacyZeroDec())
+
+		if (!r.maxSharesFilter.IsNil() && shares.GT(r.maxSharesFilter)) ||
+			(!r.minSharesFilter.IsNil() && shares.LT(r.minSharesFilter)) {
+			return false
+		}
 
 		for _, delegation := range delegations {
 			payload := Delegation{
@@ -127,7 +173,7 @@ func iterateAllAddresses(ctx context.Context, bankKeeper bankkeeper.BaseKeeper, 
 	return err
 }
 
-func toDelegations(
+func extractDelegations(
 	ctx context.Context, address sdk.AccAddress, logger log.Logger, stakingKeeper *stakingkeeper.Keeper, killChan chan error,
 ) func(item stakingtypes.Validator, index int) (stakingtypes.Delegation, bool) {
 	return func(item stakingtypes.Validator, _ int) (stakingtypes.Delegation, bool) {
@@ -149,6 +195,12 @@ func toDelegations(
 			return stakingtypes.Delegation{}, true
 		}
 		return delegation, false
+	}
+}
+
+func computeShares() func(acc math.LegacyDec, delegation stakingtypes.Delegation, _ int) math.LegacyDec {
+	return func(acc math.LegacyDec, delegation stakingtypes.Delegation, _ int) math.LegacyDec {
+		return acc.Add(delegation.Shares)
 	}
 }
 

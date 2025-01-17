@@ -21,8 +21,8 @@ var extractCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(extractCmd)
 
-	extractCmd.PersistentFlags().StringP(flagChainName, "n", "cosmos", "Name of the chain")
-	extractCmd.PersistentFlags().StringP(flagOutput, "o", "", "Output file (defaults to stdout)")
+	extractCmd.PersistentFlags().StringP(flagChainName, "n", "cosmos", "name of the chain")
+	extractCmd.PersistentFlags().StringP(flagOutput, "o", "", "output file (defaults to stdout)")
 }
 
 func newCSVWriter(cmd *cobra.Command, _ []string) (goetl.Processor, error) {
