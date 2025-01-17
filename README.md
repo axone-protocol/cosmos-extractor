@@ -14,9 +14,7 @@
 
 ## Purpose
 
-This CLI tool offers a straightforward way to extract diverse data from Cosmos chains using the application file store.
-
-Initially developed for Axone’s internal needs, it provides a versatile foundation for addressing various data extraction requirements.
+`cosmos-extractor` is a simple CLI tool designed to extract (dump) different types of data from [Cosmos](https://cosmos.network/) chain snapshots. Originally built for [Axone](https://axone.xyz)’s internal needs, it’s open for anyone who wants to dig into Cosmos-based blockchains.
 
 ## Features
 
@@ -26,6 +24,27 @@ Initially developed for Axone’s internal needs, it provides a versatile founda
 ## Usage example
 
 ```bash
-# Export delegators and their delegations to a CSV file
-$ cosmos-extractor extract delegators ./data/bitsong/data --chain-name bitsong --output ./extracts/bitsong-delegators.csv
+# Export delegators and their delegations to a CSV file for the Bitsong chain if they have between 1000 and 1500 BTSG staked.
+$ cosmos-extractor extract delegators ./bitsong/data \
+  --chain-name bitsong \
+  --output ./extracts/bitsong-delegators.csv \
+  --hrp cosmos \
+  --min-shares 1000000000 \
+  --max-shares 1500000000
+```
+
+## Build
+
+The project uses [Make](https://www.gnu.org/software/make/) for building and managing the project. To build the project, run the following command:
+
+```bash
+make build
+```
+
+## Install
+
+To install the CLI tool, run the following command:
+
+```bash
+make install
 ```
