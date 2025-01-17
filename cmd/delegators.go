@@ -4,10 +4,14 @@ import (
 	"github.com/axone-protocol/cosmos-extractor/pkg/delegators"
 	"github.com/spf13/cobra"
 	"github.com/teambenny/goetl"
+
+	"cosmossdk.io/math"
 )
 
 const (
-	flagHrp = "hrp"
+	flagHrp       = "hrp"
+	flagMinShares = "min-shares"
+	flagMaxShares = "max-shares"
 )
 
 var extractDelegatorsCmd = &cobra.Command{
@@ -15,15 +19,12 @@ var extractDelegatorsCmd = &cobra.Command{
 	Short: "Extract all delegators",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		chainName, _ := cmd.Flags().GetString(flagChainName)
-		src := args[0]
-
-		processors := []goetl.Processor{}
-
-		read, err := delegators.NewDelegatorsReader(chainName, src, logger)
+		read, err := newDelegatorsReader(cmd, args)
 		if err != nil {
 			return err
 		}
+
+		processors := []goetl.Processor{}
 		processors = append(processors, read)
 
 		hrps, err := cmd.Flags().GetStringSlice(flagHrp)
@@ -52,6 +53,46 @@ var extractDelegatorsCmd = &cobra.Command{
 	},
 }
 
+func newDelegatorsReader(cmd *cobra.Command, args []string) (goetl.Processor, error) {
+	chainName, _ := cmd.Flags().GetString(flagChainName)
+	src := args[0]
+
+	delegatorsReaderOpts := []delegators.ReaderOption{
+		delegators.WithChainName(chainName),
+		delegators.WithLogger(logger),
+	}
+
+	v, err := getShares(cmd, flagMinShares)
+	if err != nil {
+		return nil, err
+	}
+	if !v.IsNil() {
+		delegatorsReaderOpts = append(delegatorsReaderOpts, delegators.WithMinSharesFilter(v))
+	}
+
+	v, err = getShares(cmd, flagMaxShares)
+	if err != nil {
+		return nil, err
+	}
+
+	if !v.IsNil() {
+		delegatorsReaderOpts = append(delegatorsReaderOpts, delegators.WithMaxSharesFilter(v))
+	}
+
+	return delegators.NewDelegatorsReader(src, delegatorsReaderOpts...)
+}
+
+func getShares(cmd *cobra.Command, flag string) (math.LegacyDec, error) {
+	shares, err := cmd.Flags().GetString(flag)
+	if err != nil {
+		return math.LegacyDec{}, err
+	}
+	if shares == "" {
+		return math.LegacyDec{}, nil
+	}
+	return math.LegacyNewDecFromStr(shares)
+}
+
 func init() {
 	extractCmd.AddCommand(extractDelegatorsCmd)
 
@@ -59,6 +100,9 @@ func init() {
 		flagHrp,
 		"p",
 		[]string{},
-		"One or more Human-Readable Parts (HRPs) to append delegator addresses in the given Bech32 formats (e.g., cosmos, osmo). "+
+		"one or more Human-Readable Parts (HRPs) to append delegator addresses in the given Bech32 formats (e.g., cosmos, osmo). "+
 			"Can be used multiple times for different HRPs.")
+
+	extractDelegatorsCmd.Flags().String(flagMinShares, "", "filter delegators with minimum shares")
+	extractDelegatorsCmd.Flags().String(flagMaxShares, "", "filter delegators with maximum shares")
 }

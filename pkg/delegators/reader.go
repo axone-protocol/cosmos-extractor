@@ -9,9 +9,9 @@ import (
 
 	"github.com/axone-protocol/cosmos-extractor/pkg/keeper"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/samber/lo"
 	"github.com/teambenny/goetl"
 	"github.com/teambenny/goetl/etldata"
-	"github.com/teambenny/goetl/etlutil"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
@@ -19,23 +19,64 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
+type ReaderOption func(*delegatorsReader) error
+
+func WithChainName(chainName string) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.chainName = chainName
+		return nil
+	}
+}
+
+func WithLogger(logger log.Logger) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.logger = logger
+		return nil
+	}
+}
+
+func WithMinSharesFilter(minShares math.LegacyDec) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.minSharesFilter = minShares
+		return nil
+	}
+}
+
+func WithMaxSharesFilter(maxShares math.LegacyDec) ReaderOption {
+	return func(r *delegatorsReader) error {
+		r.maxSharesFilter = maxShares
+		return nil
+	}
+}
+
 type delegatorsReader struct {
-	chainName string
-	src       string
-	logger    log.Logger
-	closer    io.Closer
+	chainName       string
+	src             string
+	logger          log.Logger
+	closer          io.Closer
+	minSharesFilter math.LegacyDec
+	maxSharesFilter math.LegacyDec
 }
 
 // NewDelegatorsReader returns a new Reader that reads delegators from a blockchain data stores.
-func NewDelegatorsReader(chainName, src string, logger log.Logger) (goetl.Processor, error) {
-	return &delegatorsReader{
-		chainName: chainName,
+func NewDelegatorsReader(src string, options ...ReaderOption) (goetl.Processor, error) {
+	r := &delegatorsReader{
+		chainName: "mystery",
 		src:       src,
-		logger:    logger,
-	}, nil
+		logger:    log.NewNopLogger(),
+	}
+
+	for _, option := range options {
+		if err := option(r); err != nil {
+			return nil, err
+		}
+	}
+
+	return r, nil
 }
 
 func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldata.Payload, killChan chan error) {
@@ -65,22 +106,17 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 
 	configureSdk(prefix)
 
-	err = IterateAllAddresses(ctx, keepers.Bank, func(addr sdk.AccAddress) (stop bool) {
-		for _, val := range validators {
-			valAddr, err := sdk.ValAddressFromBech32(val.OperatorAddress)
-			etlutil.KillPipelineIfErr(err, killChan)
+	err = iterateAllAddresses(ctx, keepers.Bank, func(addr sdk.AccAddress) (stop bool) {
+		delegations := lo.RejectMap(validators,
+			extractDelegations(ctx, addr, r.logger, keepers.Staking, killChan))
+		shares := lo.Reduce(delegations, computeShares(), math.LegacyZeroDec())
 
-			delegation, err := keepers.Staking.GetDelegation(ctx, addr, valAddr)
-			if err != nil {
-				if errors.Is(err, stakingtypes.ErrNoDelegation) {
-					continue
-				}
+		if (!r.maxSharesFilter.IsNil() && shares.GT(r.maxSharesFilter)) ||
+			(!r.minSharesFilter.IsNil() && shares.LT(r.minSharesFilter)) {
+			return false
+		}
 
-				r.logger.Error(err.Error())
-				killChan <- err
-				return true
-			}
-
+		for _, delegation := range delegations {
 			payload := Delegation{
 				ChainName:           r.chainName,
 				DelegatorNativeAddr: delegation.DelegatorAddress,
@@ -122,7 +158,7 @@ func (r *delegatorsReader) String() string {
 
 // IterateAllAddresses iterates over all the accounts that are provided to a callback.
 // If true is returned from the callback, iteration is halted.
-func IterateAllAddresses(ctx context.Context, bankKeeper bankkeeper.BaseKeeper, cb func(sdk.AccAddress) bool) error {
+func iterateAllAddresses(ctx context.Context, bankKeeper bankkeeper.BaseKeeper, cb func(sdk.AccAddress) bool) error {
 	lastSeenAddr := ""
 	err := bankKeeper.Balances.Walk(ctx, nil, func(key collections.Pair[sdk.AccAddress, string], _ math.Int) (stop bool, err error) {
 		addr := key.K1()
@@ -135,6 +171,37 @@ func IterateAllAddresses(ctx context.Context, bankKeeper bankkeeper.BaseKeeper, 
 	})
 
 	return err
+}
+
+func extractDelegations(
+	ctx context.Context, address sdk.AccAddress, logger log.Logger, stakingKeeper *stakingkeeper.Keeper, killChan chan error,
+) func(item stakingtypes.Validator, index int) (stakingtypes.Delegation, bool) {
+	return func(item stakingtypes.Validator, _ int) (stakingtypes.Delegation, bool) {
+		valAddr, err := sdk.ValAddressFromBech32(item.OperatorAddress)
+		if err != nil {
+			logger.Error(err.Error())
+			killChan <- err
+			return stakingtypes.Delegation{}, true
+		}
+
+		delegation, err := stakingKeeper.GetDelegation(ctx, address, valAddr)
+		if err != nil {
+			if errors.Is(err, stakingtypes.ErrNoDelegation) {
+				return stakingtypes.Delegation{}, true
+			}
+
+			logger.Error(err.Error())
+			killChan <- err
+			return stakingtypes.Delegation{}, true
+		}
+		return delegation, false
+	}
+}
+
+func computeShares() func(acc math.LegacyDec, delegation stakingtypes.Delegation, _ int) math.LegacyDec {
+	return func(acc math.LegacyDec, delegation stakingtypes.Delegation, _ int) math.LegacyDec {
+		return acc.Add(delegation.Shares)
+	}
 }
 
 func guessPrefixFromValoper(valoper string) (string, error) {

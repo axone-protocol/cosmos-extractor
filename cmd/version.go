@@ -52,6 +52,6 @@ var versionCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(versionCmd)
 
-	versionCmd.Flags().Bool(flagLong, false, "Print long version information")
-	versionCmd.Flags().StringP(flagFormat, "f", "text", "Output format (text|json)")
+	versionCmd.Flags().Bool(flagLong, false, "print long version information")
+	versionCmd.Flags().StringP(flagFormat, "f", "text", "output format (text|json)")
 }
