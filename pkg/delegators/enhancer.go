@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/teambenny/goetl"
 	"github.com/teambenny/goetl/etldata"
 
@@ -21,16 +22,13 @@ type addressEnhancer struct {
 
 // NewAddressEnhancer returns a new processor that enrich the data with addresses with the given prefixes.
 func NewAddressEnhancer(prefixes []string, logger log.Logger) (goetl.Processor, error) {
-	keys := make([]string, len(prefixes))
-	for i, prefix := range prefixes {
-		keys[i] = fmt.Sprintf("delegator-%s-address", prefix)
-	}
-
 	return &addressEnhancer{
 		prefixes: prefixes,
 		logger:   logger,
-		keys:     keys,
-		name:     fmt.Sprintf("AddressEnhancer(%s)", strings.Join(prefixes, ",")),
+		keys: lo.Map(prefixes, func(prefix string, _ int) string {
+			return fmt.Sprintf("delegator_%s_address", prefix)
+		}),
+		name: fmt.Sprintf("AddressEnhancer(%s)", strings.Join(prefixes, ",")),
 	}, nil
 }
 
