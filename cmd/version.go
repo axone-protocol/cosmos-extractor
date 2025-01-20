@@ -14,7 +14,7 @@ const (
 	flagFormat = "format"
 )
 
-// NewVersionCommand returns a CLI command to interactively print the application binary version information.
+// versionCmd represents the command to interactively print the application binary version information.
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the application binary version information",

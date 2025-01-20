@@ -14,6 +14,7 @@ const (
 	flagMaxShares = "max-shares"
 )
 
+// extractDelegatorsCmd represents the command to extract all delegators.
 var extractDelegatorsCmd = &cobra.Command{
 	Use:   "delegators [source]",
 	Short: "Extract all delegators",
@@ -103,6 +104,6 @@ func init() {
 		"one or more Human-Readable Parts (HRPs) to append delegator addresses in the given Bech32 formats (e.g., cosmos, osmo). "+
 			"Can be used multiple times for different HRPs.")
 
-	extractDelegatorsCmd.Flags().String(flagMinShares, "", "filter delegators with minimum shares")
-	extractDelegatorsCmd.Flags().String(flagMaxShares, "", "filter delegators with maximum shares")
+	extractDelegatorsCmd.Flags().String(flagMinShares, "", "filter delegators with minimum shares (in native token)")
+	extractDelegatorsCmd.Flags().String(flagMaxShares, "", "filter delegators with maximum shares (in native token)")
 }

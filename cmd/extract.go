@@ -13,6 +13,7 @@ const (
 	flagOutput    = "output"
 )
 
+// extractCmd represents the command to extract data from a chain. It is a parent command for all extract commands.
 var extractCmd = &cobra.Command{
 	Use:   "extract",
 	Short: "Extract data from a chain (snapshot)",

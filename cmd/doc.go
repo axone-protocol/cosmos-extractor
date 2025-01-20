@@ -11,6 +11,7 @@ const (
 	flagMkDirs = "mk-dirs"
 )
 
+// metaCmd represents the meta docs command to generate documentation.
 var metaDocsCmd = &cobra.Command{
 	Use:   "docs [dir]",
 	Short: "Generate documentation to a directory",

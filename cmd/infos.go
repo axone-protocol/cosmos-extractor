@@ -6,9 +6,10 @@ import (
 	"github.com/teambenny/goetl"
 )
 
+// extractInfosCmd represents the command to extract chain information.
 var extractInfosCmd = &cobra.Command{
-	Use:   "infos [source] [dest]",
-	Short: "Extract chain informations",
+	Use:   "infos [source]",
+	Short: "Extract chain information",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		chainName, _ := cmd.Flags().GetString(flagChainName)
