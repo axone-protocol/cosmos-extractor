@@ -22,6 +22,7 @@ import (
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -112,7 +113,8 @@ func newCodec() (*codec.ProtoCodec, error) {
 		return nil, err
 	}
 	std.RegisterInterfaces(interfaceRegistry)
-	interfaceRegistry.RegisterInterface("/cosmos.auth.v1beta1.BaseAccount", (*sdk.AccountI)(nil))
+	authtypes.RegisterInterfaces(interfaceRegistry)
+	vestingtypes.RegisterInterfaces(interfaceRegistry)
 
 	return codec.NewProtoCodec(interfaceRegistry), nil
 }
