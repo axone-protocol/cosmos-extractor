@@ -14,6 +14,7 @@ import (
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -85,7 +86,7 @@ func (r *delegatorsReader) ProcessData(_ etldata.Payload, outputChan chan etldat
 
 	ctx := sdk.NewContext(keepers.Store, cmtproto.Header{}, false, keepers.Logger)
 
-	err = keepers.Account.Accounts.Walk(ctx, nil, func(addr sdk.AccAddress, _ sdk.AccountI) (stop bool, err error) {
+	err = WalkAccounts(ctx, keepers.Account, func(addr sdk.AccAddress) (stop bool, err error) {
 		delegations := lo.FlatMap([]sdk.AccAddress{addr},
 			extractDelegations(ctx, r.logger, keepers.Staking, killChan),
 		)
@@ -125,6 +126,33 @@ func (r *delegatorsReader) Finish(_ chan etldata.Payload, killChan chan error) {
 
 func (r *delegatorsReader) String() string {
 	return "DelegatorsReader"
+}
+
+func WalkAccounts(
+	ctx sdk.Context, accountKeeper authkeeper.AccountKeeper, walkFunc func(addr sdk.AccAddress,
+	) (stop bool, err error),
+) error {
+	iter, err := accountKeeper.Accounts.Iterate(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = iter.Close() }()
+
+	for ; iter.Valid(); iter.Next() {
+		addr, err := iter.Key()
+		if err != nil {
+			return err
+		}
+
+		stop, err := walkFunc(addr)
+		if err != nil {
+			return err
+		}
+		if stop {
+			return nil
+		}
+	}
+	return nil
 }
 
 func extractDelegations(
