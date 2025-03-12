@@ -9,7 +9,7 @@ require (
 	cosmossdk.io/x/tx v0.13.7
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-db v1.1.1
-	github.com/cosmos/cosmos-sdk v0.50.12
+	github.com/cosmos/cosmos-sdk v0.50.13
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/samber/lo v1.49.1
 	github.com/smartystreets/goconvey v1.8.1
