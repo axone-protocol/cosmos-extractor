@@ -5,7 +5,7 @@ toolchain go1.24.1
 
 require (
 	cosmossdk.io/log v1.5.1
-	cosmossdk.io/math v1.5.1
+	cosmossdk.io/math v1.5.2
 	cosmossdk.io/store v1.1.1
 	cosmossdk.io/x/tx v0.13.7
 	github.com/cometbft/cometbft v0.38.17
