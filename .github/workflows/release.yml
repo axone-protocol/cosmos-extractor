@@ -44,7 +44,7 @@ jobs:
           node-version: 20
 
       - name: Release project
-        uses: cycjimmy/semantic-release-action@v4
+        uses: cycjimmy/semantic-release-action@v5
         with:
           semantic_version: 22.0.5
           branch: main
