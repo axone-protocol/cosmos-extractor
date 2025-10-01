@@ -4,7 +4,7 @@
 BINARY_NAME             = $(shell basename `pwd`)
 TARGET_FOLDER           = target
 DIST_FOLDER             = $(TARGET_FOLDER)/dist
-DOCKER_IMAGE_GOLANG_CI  = golangci/golangci-lint:v2.0
+DOCKER_IMAGE_GOLANG_CI  = golangci/golangci-lint:v2.5.0
 
 # Some colors
 COLOR_GREEN  = $(shell tput -Txterm setaf 2)
